@@ -10,7 +10,7 @@ $(function () {
             svg.selectable();
             var texts = svg.selectAll("svg>text");
             for (var i = 0; i < texts.length; i++){
-                //texts[i].text();
+                texts[i].text();
             }
         });
        

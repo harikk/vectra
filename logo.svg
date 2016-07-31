@@ -50,14 +50,14 @@
 <text
    id="Tagline"
    font-size="28"
-   style="font-size:20.00000191000000200px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#8dc63f;fill-opacity:1;font-family:Scriptina Pro Light"
+   style="font-size:20.00000191000000200px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#8dc63f;fill-opacity:1;font-family:Times"
    x="177.40915"
-   y="224.05434">tagline here</text>
+   y="224.05434">tagline here</text> 
 
 <text
    id="Company_Name"
    font-size="28"
-   style="font-size:26.00000191px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#1c75bc;fill-opacity:1;font-family:Scriptina Pro Light;"
+   style="font-size:26.00000191px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#1c75bc;fill-opacity:1;font-family:Times"
    x="177.20309"
    y="172.72032">company name</text>
 

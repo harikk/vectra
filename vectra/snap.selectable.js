@@ -55,6 +55,10 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                     x: bbox.x - 10,
                     y: bbox.y - 10
                 }); 
+                
+                var evt = Events.createEvent("svgDragging");
+                evt.element = selectedItem; 
+                Events.fireEvent(evt, selectedItem.node); 
             } else {
                 if (!multiSelectRect) {
                     multiSelectRect = svg.rect(coords.x, coords.y, 1, 1, 0, 0);
@@ -156,13 +160,19 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 var item = items[i - 1];
                 item.transform(item.transform().totalMatrix.toTransformString());
                 innerSvg.append(item);
-            }
+            } 
+            var evt = Events.createEvent("svgMultipleUnSeleted");
+            evt.elements = items; 
+            Events.fireEvent(evt); 
             multiGroup.remove();
+        } else if (selectedItem) {
+            var evt = Events.createEvent("svgUnSeleted");
+            evt.element = selectedItem; 
+            Events.fireEvent(evt, selectedItem.node); 
         }
         return rect;
     }
-    
-    // <editor-fold defaultstate="collapsed" desc="user-description">
+     
     function getWindowPosition (elem){
         var coord = elem.node.getBoundingClientRect();
         var screenPos = convertToWindowPoints(0, 0);
@@ -218,12 +228,29 @@ Snap.plugin(function (Snap, Element, Paper, global) {
             "stroke-width": "1",
             "stroke-dasharray": "4,4",
             "stroke-opacity": "1",
+            "cursor": "move",
             "stroke": "#000",
             "id": "_internalRubberBand"
         });
+        singleSelectRect.click(function (){
+            var evt = Events.createEvent("svgClicked");
+            evt.element = selectedItem; 
+            Events.fireEvent(evt, selectedItem.node); 
+        })
+    }
+    
+    function updateRubberBand(){
+        if (selectedItem){
+            var band = svg.select("#_internalRubberBand");
+            var screen = getWindowPosition(selectedItem);
+            band.attr("width", screen.width + 20);
+            band.attr("height", screen.height + 20);
+            band.attr("x", screen.x - 10);
+            band.attr("y", screen.y - 10);
+        }
     }
     
     Element.prototype.getWindowPosition = getWindowPosition;
-    Element.prototype.convertToWindowPoints = convertToWindowPoints;
-    // </editor-fold>
+    Element.prototype.convertToWindowPoints = convertToWindowPoints; 
+    Element.prototype.updateRubberBand = updateRubberBand; 
 }); 
