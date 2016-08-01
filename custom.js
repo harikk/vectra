@@ -8,19 +8,18 @@ $(function () {
             svg.append(f);  
             svg.updateInnerCanvas();
             svg.selectable();
-            var texts = svg.selectAll("svg>text");
-            for (var i = 0; i < texts.length; i++){
-                texts[i].text();
+            var items = svg.selectAll("svg>svg>*");
+            for (var i = 0; i < items.length; i++){
+                switch(items[i].type){
+                    case "text":{
+                        items[i].text(); 
+                    }
+                    default: {
+                        items[i].rotatable(); 
+                    }
+                } 
             }
         });
-       
-        window.addEventListener("svgSeleted", function (evt){ 
-            //console.log("onSvgSeleted", evt.element);
-        }, false);
-        
-        window.addEventListener("svgMultipleSeleted", function (evt){ 
-            //console.log("svgMultipleSeleted", evt.elements);
-        }, false);
          
     }
 

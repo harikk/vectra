@@ -6,6 +6,13 @@ Snap.plugin(function (Snap, Element, Paper, global) {
     var singleSelectRect;
     var mode;
     var selectedItem; 
+    
+    function triggerEvent(evName, evTarget, fireTarget, data){ 
+        var evt = Events.createEvent(evName);
+        evt.element = evTarget;  
+        evt.data = data;
+        Events.fireEvent(evt, fireTarget); 
+    }
 
     Element.prototype.selectable = function () {
         var localMatrix;
@@ -20,12 +27,10 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                     selectedItem = getOuterGroupEl(selected);
                     getRubberBand(selectedItem);
                     mode = "select";
-                    var evt = Events.createEvent("svgSeleted");
-                    evt.element = selectedItem; 
-                    Events.fireEvent(evt, selectedItem.node); 
+                    triggerEvent("svgSeleted", selectedItem, selectedItem.node, singleSelectRect); 
                 }
             }
-            if (mode == "select") {
+            if (mode == "select" || mode == "multiselected") {
                 if (!isInternalNode(item)) {
                     if (isElementUnderPoint(singleSelectRect, winPos.x, winPos.y)) {
                         // do nothing
@@ -44,7 +49,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
             var coords = convertToWindowPoints(x, y); 
             lastDx = dx;
             lastDy = dy;
-            if (mode == "select") {
+            if (mode == "select" || mode == "multiselected") {
                 var t = new Snap.Matrix();
                 t.translate(dx, dy);
                 t.add(localMatrix);
@@ -54,11 +59,12 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 singleSelectRect.attr({
                     x: bbox.x - 10,
                     y: bbox.y - 10
-                }); 
-                
-                var evt = Events.createEvent("svgDragging");
-                evt.element = selectedItem; 
-                Events.fireEvent(evt, selectedItem.node); 
+                });
+                if (mode == "multiselected"){
+                    triggerEvent("svgMultipleDragging", selectedItem, undefined, singleSelectRect);
+                } else {
+                    triggerEvent("svgDragging", selectedItem, selectedItem.node, singleSelectRect);
+                }
             } else {
                 if (!multiSelectRect) {
                     multiSelectRect = svg.rect(coords.x, coords.y, 1, 1, 0, 0);
@@ -71,7 +77,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                         "stroke": "#000",
                     });
                 }
-                mode = "multiselect";
+                mode = "multiselecting";
 
                 var bbox = getWindowPosition(multiSelectRect);
                 var cx = bbox.x;
@@ -94,14 +100,14 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 });
             }
         }, function (x, y) { 
-            if (mode == "select") {
+            if (mode == "select" || mode == "multiselected") {
                 localMatrix = selectedItem.transform().localMatrix;
             } else {
                 resetSelection()
                 start = convertToWindowPoints(x, y);
             }
         }, function () { 
-            if (mode == "multiselect") { 
+            if (mode == "multiselecting") {
                 var bounds = getWindowPosition(multiSelectRect);
                 var items = svg.selectAll("svg > *");
                 multiSelectRect.remove();
@@ -124,10 +130,8 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                     /* check for non displayable elements like <desc>, <metadata> etc */
                     if (isDisplayableBbox(getWindowPosition(g))) {
                         getRubberBand(g); 
-                        mode = "select";
-                        var evt = Events.createEvent("svgMultipleSeleted"); 
-                        evt.elements = g.children(); 
-                        Events.fireEvent(evt);
+                        mode = "multiselected";
+                        triggerEvent("svgMultipleSeleted", g.children(), undefined, singleSelectRect);
                     } else {
                         resetSelection();
                     }
@@ -143,7 +147,6 @@ Snap.plugin(function (Snap, Element, Paper, global) {
         if (rect != null) {
             rect.remove();
         }
-        mode = "clear";
         if (singleSelectRect) {
             singleSelectRect.remove();
             singleSelectRect = undefined;
@@ -160,16 +163,13 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 var item = items[i - 1];
                 item.transform(item.transform().totalMatrix.toTransformString());
                 innerSvg.append(item);
-            } 
-            var evt = Events.createEvent("svgMultipleUnSeleted");
-            evt.elements = items; 
-            Events.fireEvent(evt); 
+            }  
+            triggerEvent("svgMultipleUnSeleted", items);
             multiGroup.remove();
-        } else if (selectedItem) {
-            var evt = Events.createEvent("svgUnSeleted");
-            evt.element = selectedItem; 
-            Events.fireEvent(evt, selectedItem.node); 
+        } else if (selectedItem) { 
+            triggerEvent("svgUnSeleted", selectedItem, selectedItem.node, singleSelectRect);
         }
+        mode = "clear";
         return rect;
     }
      
@@ -233,10 +233,8 @@ Snap.plugin(function (Snap, Element, Paper, global) {
             "id": "_internalRubberBand"
         });
         singleSelectRect.click(function (){
-            var evt = Events.createEvent("svgClicked");
-            evt.element = selectedItem; 
-            Events.fireEvent(evt, selectedItem.node); 
-        })
+            triggerEvent("svgClicked", selectedItem, selectedItem.node, singleSelectRect);
+        });
     }
     
     function updateRubberBand(){
