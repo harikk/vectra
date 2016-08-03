@@ -71,7 +71,9 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 color: element.attr("fill"),
                 fontVarient: element.attr("font-variant"),
                 fontStretch: element.attr("font-stretch")
-            };
+            }; 
+            //$("#textEdit").css("transform", (element.transform().toString()));
+            
             $("#textEdit").css(attrs);
         }
 

@@ -31,14 +31,16 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 }
             }
             if (mode == "select" || mode == "multiselected") {
-                if (!isInternalNode(item)) {
+                if (isInternalNode(item)) { 
+                    resetSelection(); 
+                } else if (isControlNode(item)) {
+                    /* do nothing */
+                } else {
                     if (isElementUnderPoint(singleSelectRect, winPos.x, winPos.y)) {
                         // do nothing
                     } else {
                         _selectItem();
                     }
-                } else {
-                    resetSelection();
                 }
             } else {
                 _selectItem();
@@ -119,7 +121,6 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                         var elBounds = getWindowPosition(el);
                         if (el.type != "svg" && isDisplayableBbox(elBounds)) {
                             if (Snap.path.isBBoxIntersect(elBounds, bounds)) {
-                                el.attr("data-old-transform", el.transform().localMatrix.toTransformString());
                                 g.add(el); 
                             }
                         }
@@ -131,7 +132,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                     if (isDisplayableBbox(getWindowPosition(g))) {
                         getRubberBand(g); 
                         mode = "multiselected";
-                        triggerEvent("svgMultipleSeleted", g.children(), undefined, singleSelectRect);
+                        triggerEvent("svgMultipleSeleted", g.children(), undefined, {band: singleSelectRect, elementGroup: g});
                     } else {
                         resetSelection();
                     }
@@ -193,7 +194,34 @@ Snap.plugin(function (Snap, Element, Paper, global) {
     }
     
     function isInternalNode(el) {
-        return !el || el.node.id == "canvasBg" || el.node.id == "canvasFg";
+        if (el) {
+            var nodeId = el.node.id;
+            var isIntNode = false;
+            switch (nodeId){
+                case "canvasBg":
+                case "canvasFg": {
+                    isIntNode = true;
+                }
+            }
+            return isIntNode;
+        } else {
+            return false;
+        }
+    }
+    
+    function isControlNode(el) {
+        if (el) {
+            var nodeId = el.node.id;
+            var isCtlNode = false;
+            switch (nodeId){ 
+                case "_internalRotateControl":{
+                    isCtlNode = true;
+                }
+            }
+            return isCtlNode;
+        } else {
+            return false;
+        }
     }
 
     function getOuterGroupEl(el) {
@@ -232,13 +260,14 @@ Snap.plugin(function (Snap, Element, Paper, global) {
             "stroke": "#000",
             "id": "_internalRubberBand"
         });
+        //singleSelectRect.transform(node.transform().toString())
         singleSelectRect.click(function (){
             triggerEvent("svgClicked", selectedItem, selectedItem.node, singleSelectRect);
         });
     }
     
     function updateRubberBand(){
-        if (selectedItem){
+        if (selectedItem) {
             var band = svg.select("#_internalRubberBand");
             var screen = getWindowPosition(selectedItem);
             band.attr("width", screen.width + 20);
